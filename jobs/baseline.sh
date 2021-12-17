@@ -22,7 +22,7 @@ echo "------------------------------------< Data preparation>-------------------
 echo "Copying the source code"
 date +"%T"
 cd $SLURM_TMPDIR
-cp -r ~/scratch/BMS .
+cp -r ~/scratch/FeatureNorm .
 
 echo "Copying the datasets"
 date +"%T"
@@ -30,7 +30,7 @@ cp -r ~/scratch/CD-FSL_Datasets .
 
 echo "creating data directories"
 date +"%T"
-cd BMS
+cd FeatureNorm
 cd data
 unzip -q $SLURM_TMPDIR/CD-FSL_Datasets/miniImagenet.zip
 
@@ -62,7 +62,7 @@ echo "---------------------------------------<Run the program>------------------
 date +"%T"
 cd $SLURM_TMPDIR
 
-cd BMS
+cd FeatureNorm
 
 python baseline.py --dir ./logs/baseline --bsize 128 --epochs 1000 --model resnet10
 
@@ -77,5 +77,5 @@ date +"%T"
 echo "--------------------------------------<backup the result>-----------------------------------"
 date +"%T"
 cd $SLURM_TMPDIR
-cp -r $SLURM_TMPDIR/BMS/logs/baseline/ ~/scratch/BMS/logs/
+cp -r $SLURM_TMPDIR/FeatureNorm/logs/baseline/ ~/scratch/FeatureNorm/logs/
 
