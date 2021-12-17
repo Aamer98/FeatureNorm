@@ -78,6 +78,9 @@ def finetune(novel_loader, params, n_shot):
     if params.model == 'resnet10':
         pretrained_model_template = models.ResNet10()
         feature_dim = pretrained_model_template.final_feat_dim
+    if params.model == 'resnet10_GN':
+        pretrained_model_template = models.ResNet10_GN()
+        feature_dim = pretrained_model_template.final_feat_dim
     elif params.model == 'resnet12':
         pretrained_model_template = models.Resnet12(width=1, dropout=0.1)
         feature_dim = pretrained_model_template.output_size
