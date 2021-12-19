@@ -8,10 +8,10 @@
 #SBATCH --job-name=baseline
 #SBATCH --output=%x-%j.out
 #SBATCH --nodes=1
-#SBATCH --gres=gpu:1
+#SBATCH --gres=gpu:4
 #SBATCH --ntasks-per-node=32
 #SBATCH --mem=127000M
-#SBATCH --time=0-00:30
+#SBATCH --time=2-00:00
 #SBATCH --account=rrg-ebrahimi
 
 nvidia-smi
