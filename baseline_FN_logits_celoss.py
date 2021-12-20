@@ -40,8 +40,8 @@ def restore_BN_affine(model, BN_statistics_list):
     i = 0
     for layer in model.modules():
         if isinstance(layer, nn.BatchNorm2d):
-            nn.init.constant_(m.weight, BN_statistics_list[i]['weight'])
-            nn.init.constant_(m.bias, BN_statistics_list[i]['bias'])
+            nn.init.constant_(layer.weight, BN_statistics_list[i]['weight'])
+            nn.init.constant_(layer.bias, BN_statistics_list[i]['bias'])
             i += 1
     return model
 
@@ -50,8 +50,8 @@ def restore_BN_affine(model, BN_statistics_list):
 def set_FN(model):
     for layer in model.modules():
         if isinstance(layer, nn.BatchNorm2d):
-            nn.init.constant_(m.weight, 1)
-            nn.init.constant_(m.bias, 0)
+            nn.init.constant_(layer.weight, 1)
+            nn.init.constant_(layer.bias, 0)
     return model
 
 def main(args):
