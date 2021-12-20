@@ -469,7 +469,7 @@ def train(model, clf,
         model = restore_BN_affine(model, BN_affine_list)
         
         loss_base = loss_ce(logits_base, y_base)
-        loss_bnAug = loss_ce(logits_base.long(), FN_logits_base.long())
+        loss_bnAug = loss_ce(logits_base.float(), FN_logits_base.long())
 
         loss = loss_base + loss_bnAug
 
