@@ -462,6 +462,7 @@ def train(model, clf,
 
         BN_affine_list = clone_BN_affine(model)
         model = set_FN(model)
+        model.to(device)
 
         FN_features_base = model(X_base)
         FN_logits_base = clf(FN_features_base)
@@ -469,7 +470,7 @@ def train(model, clf,
         model = restore_BN_affine(model, BN_affine_list)
         
         loss_base = loss_ce(logits_base, y_base)
-        loss_bnAug = loss_ce(features_base.to(device=device, dtype=torch.int64), FN_features_base.to(device=device, dtype=torch.int64))
+        loss_bnAug = loss_ce(features_base, FN_features_base)
 
         loss = loss_base + loss_bnAug
 
