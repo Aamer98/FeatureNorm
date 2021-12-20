@@ -30,8 +30,8 @@ def clone_BN_affine(model):
     for layer in model.modules():
         if isinstance(layer, nn.BatchNorm2d):
             BN_statistics_list.append(
-                {'weight': int(layer.weight.clone().detach().numpy()[0]),
-                 'bias': int(layer.bias.clone().detach().numpy()[0])})
+                {'weight': int(layer.weight.clone().detach().cpu().numpy()[0]),
+                 'bias': int(layer.bias.clone().detach().cpu().numpy()[0])})
     return BN_statistics_list
 
 
