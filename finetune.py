@@ -35,30 +35,30 @@ def finetune(novel_loader, params, n_shot):
     device = torch.device(dev)
 
     print("Loading Model: ", params.embedding_load_path)
-    if params.embedding_load_path_version == 0:
-        state = torch.load(params.embedding_load_path)['state']
-        state_keys = list(state.keys())
-        for _, key in enumerate(state_keys):
-            if "feature." in key:
-                # an architecture model has attribute 'feature', load architecture feature to backbone by casting name from 'feature.trunk.xx' to 'trunk.xx'
-                newkey = key.replace("feature.", "")
-                state[newkey] = state.pop(key)
-            else:
-                state.pop(key)
-        sd = state
-    elif params.embedding_load_path_version == 1:
-        sd = torch.load(params.embedding_load_path,
-                        map_location=torch.device(device))
+    #if params.embedding_load_path_version == 0:
+    #    state = torch.load(params.embedding_load_path)['state']
+    #    state_keys = list(state.keys())
+    #    for _, key in enumerate(state_keys):
+    #        if "feature." in key:
+    #            # an architecture model has attribute 'feature', load architecture feature to backbone by casting name from 'feature.trunk.xx' to 'trunk.xx'
+    #            newkey = key.replace("feature.", "")
+    #            state[newkey] = state.pop(key)
+    #        else:
+    #            state.pop(key)
+    #    sd = state
+    #elif params.embedding_load_path_version == 1:
+    sd = torch.load(params.embedding_load_path,
+                    map_location=torch.device(device))
 
-        if 'epoch' in sd:
-            print("Model checkpointed at epoch: ", sd['epoch'])
+    if 'epoch' in sd:
+        print("Model checkpointed at epoch: ", sd['epoch'])
         
-        if 'model' in sd:            
-            sd = sd['model']
-        elif 'state_dict' in sd:
-            sd = sd['state_dict']
-        else:
-            sd = sd
+    if 'model' in sd:            
+        sd = sd['model']
+    elif 'state_dict' in sd:
+        sd = sd['state_dict']
+    else:
+        sd = sd
     # elif params.embedding_load_path_version == 3:
     #     state = torch.load(params.embedding_load_path)
     #     print("Model checkpointed at epoch: ", state['epoch'])
@@ -78,7 +78,7 @@ def finetune(novel_loader, params, n_shot):
     if params.model == 'resnet10':
         pretrained_model_template = models.ResNet10()
         feature_dim = pretrained_model_template.final_feat_dim
-    if params.model == 'resnet10_GN':
+    elif params.model == 'resnet10_GN':
         pretrained_model_template = models.ResNet10_GN()
         feature_dim = pretrained_model_template.final_feat_dim
     elif params.model == 'resnet12':
