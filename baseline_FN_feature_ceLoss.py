@@ -30,8 +30,8 @@ def clone_BN_affine(model):
     for layer in model.modules():
         if isinstance(layer, nn.BatchNorm2d):
             BN_statistics_list.append(
-                {'weight': int(layer.weight.clone().detach().numpy()[0]),
-                 'bias': int(layer.bias.clone().detach().numpy()[0])})
+                {'weight': int(layer.weight.clone().detach().cpu().numpy()[0]),
+                 'bias': int(layer.bias.clone().detach().cpu().numpy()[0])})
     return BN_statistics_list
 
 
@@ -40,8 +40,8 @@ def restore_BN_affine(model, BN_statistics_list):
     i = 0
     for layer in model.modules():
         if isinstance(layer, nn.BatchNorm2d):
-            nn.init.constant_(m.weight, BN_statistics_list[i]['weight'])
-            nn.init.constant_(m.bias, BN_statistics_list[i]['bias'])
+            nn.init.constant_(layer.weight, BN_statistics_list[i]['weight'])
+            nn.init.constant_(layer.bias, BN_statistics_list[i]['bias'])
             i += 1
     return model
 
@@ -50,8 +50,8 @@ def restore_BN_affine(model, BN_statistics_list):
 def set_FN(model):
     for layer in model.modules():
         if isinstance(layer, nn.BatchNorm2d):
-            nn.init.constant_(m.weight, 1)
-            nn.init.constant_(m.bias, 0)
+            nn.init.constant_(layer.weight, 1)
+            nn.init.constant_(layer.bias, 0)
     return model
 
 def main(args):
@@ -193,7 +193,7 @@ def main(args):
     ###########################
 
     optimizer = torch.optim.SGD([
-        {'params': backbone.parameters()},
+        {'params': filter(lambda p: p.requires_grad, backbone.parameters())},
         {'params': clf.parameters()}
     ],
         lr=0.1, momentum=0.9,
@@ -248,7 +248,7 @@ def main(args):
 
                 # Validate to set the right loss
                 performance_val = validate(backbone, clf,
-                                           base_valloader, valloader,
+                                           base_valloader,
                                            best_epoch, args.epochs, logger, vallog, args, device, postfix='Validation')
 
                 loss_val = performance_val['Loss_test/avg']
@@ -299,9 +299,9 @@ def main(args):
 
             # create the optimizer
             optimizer = torch.optim.SGD([
-                {'params': backbone.parameters()},
+                {'params': filter(lambda p: p.requires_grad, backbone.parameters())},
                 {'params': clf.parameters()}
-            ],
+            ],            
                 lr=current_lr, momentum=0.9,
                 weight_decay=args.wd,
                 nesterov=False)
@@ -331,8 +331,8 @@ def main(args):
         logger.info(f"** Learning with lr: {current_lr}")
         
         optimizer = torch.optim.SGD([
-                {'params': backbone.parameters()},
-                {'params': clf.parameters()}
+            {'params': filter(lambda p: p.requires_grad, backbone.parameters())},
+            {'params': clf.parameters()}
         ],
             lr=current_lr, momentum=0.9,
             weight_decay=args.wd,
@@ -455,21 +455,24 @@ def train(model, clf,
         X_base = X_base.to(device)
         y_base = y_base.to(device)
 
+        model_na = copy.deepcopy(model)
+        model_na = set_FN(model_na)
+
         optimizer.zero_grad()
 
         features_base = model(X_base)
         logits_base = clf(features_base)
 
-        BN_affine_list = clone_BN_affine(model)
-        model = set_FN(model)
+        #BN_affine_list = clone_BN_affine(model)
+        #model = set_FN(model)
 
-        FN_features_base = model(X_base)
+        FN_features_base = model_na(X_base)
         FN_logits_base = clf(FN_features_base)
 
-        model = restore_BN_affine(model, BN_affine_list)
+        #model = restore_BN_affine(model, BN_affine_list)
         
         loss_base = loss_ce(logits_base, y_base)
-        loss_bnAug = loss_ce(features_base, FN_features_base)
+        loss_bnAug = loss_ce(FN_logits_base, logits_base)
 
         loss = loss_base + loss_bnAug
 
