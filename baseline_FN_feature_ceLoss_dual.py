@@ -469,7 +469,7 @@ def train(model, clf,
         FN_features_base = model_na(X_base)
         FN_logits_base = clf(FN_features_base)
 
-        model = restore_BN_affine(model, BN_affine_list)
+        #model = restore_BN_affine(model, BN_affine_list)
         
         loss_base = loss_ce(logits_base, y_base)
         loss_bnAug = loss_ce(FN_logits_base, y_base)
