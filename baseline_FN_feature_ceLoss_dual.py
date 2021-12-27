@@ -455,15 +455,18 @@ def train(model, clf,
         X_base = X_base.to(device)
         y_base = y_base.to(device)
 
+        model_na = copy.deepcopy(model)
+        model_na = set_FN(model_na)
+
         optimizer.zero_grad()
 
         features_base = model(X_base)
         logits_base = clf(features_base)
 
-        BN_affine_list = clone_BN_affine(model)
-        model = set_FN(model)
+        #BN_affine_list = clone_BN_affine(model)
+        #model = set_FN(model)
 
-        FN_features_base = model(X_base)
+        FN_features_base = model_na(X_base)
         FN_logits_base = clf(FN_features_base)
 
         model = restore_BN_affine(model, BN_affine_list)
