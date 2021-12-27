@@ -72,8 +72,8 @@ def finetune(novel_loader, params, n_shot):
     #         else:
     #             state.pop(key)
     #     sd = state
-    else:
-        raise ValueError("Invalid load path version!")
+    #else:
+    #    raise ValueError("Invalid load path version!")
 
     if params.model == 'resnet10':
         pretrained_model_template = models.ResNet10()
