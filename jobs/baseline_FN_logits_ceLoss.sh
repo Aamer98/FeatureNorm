@@ -16,7 +16,7 @@
 
 nvidia-smi
 
-source ~/py37/bin/activate
+source ~/my_env9/bin/activate
 
 echo "------------------------------------< Data preparation>----------------------------------"
 echo "Copying the source code"
@@ -65,7 +65,7 @@ cd $SLURM_TMPDIR
 cd FeatureNorm
 
 python baseline_FN_logits_celoss.py --dir ./logs/baseline_FN_logits_celoss --bsize 128 --epochs 1000 --model resnet10
-
+wait
 python finetune.py --save_dir ./logs/baseline_FN_logits_celoss --target_dataset EuroSAT --subset_split datasets/split_seed_1/EuroSAT_labeled_80.csv --embedding_load_path ./logs/baseline_FN_logits_celoss/checkpoint_best.pkl --freeze_backbone &
 python finetune.py --save_dir ./logs/baseline_FN_logits_celoss --target_dataset CropDisease --subset_split datasets/split_seed_1/CropDisease_labeled_80.csv --embedding_load_path ./logs/baseline_FN_logits_celoss/checkpoint_best.pkl --freeze_backbone &
 python finetune.py --save_dir ./logs/baseline_FN_logits_celoss --target_dataset ISIC --subset_split datasets/split_seed_1/ISIC_labeled_80.csv --embedding_load_path ./logs/baseline_FN_logits_celoss/checkpoint_best.pkl --freeze_backbone &
