@@ -566,7 +566,7 @@ def train(model_bn, model_fn, clf_bn, clf_fn,
         meters.update('Loss_FN', loss_fn.item(), 1)
         meters.update('CE_Loss_source_FN', loss_base_fn.item(), 1)
 
-        perf_base_bn = utils.accuracy(loss_base_bn.data,
+        perf_base_bn = utils.accuracy(logits_base_bn.data,
                                    y_base.data, topk=(1, ))
         perf_base_fn = utils.accuracy(logits_base_fn.data,
                                    y_base.data, topk=(1, ))
