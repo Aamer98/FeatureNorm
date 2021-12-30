@@ -553,7 +553,7 @@ def train(model_bn, model_fn, clf_bn, clf_fn,
 
         loss_base_bn = loss_ce(logits_base_bn, y_base)
         
-        loss_ce_diff = loss_ce(logits_base_bn, logits_base_fn.detach(),cuda())
+        loss_ce_diff = loss_ce(logits_base_bn, logits_base_fn.detach().cuda())
         loss_bn = loss_base_bn + loss_ce_diff
         
 
