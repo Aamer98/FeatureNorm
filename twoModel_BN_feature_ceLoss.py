@@ -287,6 +287,7 @@ def main(args):
 
         step = 50
 
+        print("1")
         # number of training epochs to get at least 50 updates
         warm_up_epoch = math.ceil(step / len(base_trainloader))
 
@@ -299,7 +300,7 @@ def main(args):
         sd_head_fn = copy.deepcopy(clf_fn.state_dict())
 
         vals = []
-
+        print("2")
         # Test the learning rate by training for one epoch
         for current_lr in lr_candidates:
             lr_log = utils.savelog(args.dir, f'lr_{current_lr}')
@@ -333,7 +334,7 @@ def main(args):
                 weight_decay=args.wd,
                 nesterov=False)
 
-
+            print("3")
             logger.info(f'*** Testing Learning Rate: {current_lr}')
 
             # training for a bit
@@ -355,7 +356,7 @@ def main(args):
             #                    1, 1, logger, vallog, args, device, postfix='Validation',
             #                    turn_off_sync=True)
             vals.append(perf_val['Loss_test/avg'])
-
+        print("4")
         # pick the best learning rates
         current_lr = lr_candidates[int(np.argmin(vals))]
 
