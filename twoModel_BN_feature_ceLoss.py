@@ -386,6 +386,8 @@ def main(args):
                                                                threshold=1e-4, min_lr=1e-5)
         
 
+        scheduler_bn.step(math.inf)
+
         for layer in backbone_fn.modules():
             if isinstance(layer, nn.BatchNorm2d):
                 layer.bias.requires_grad = False
@@ -406,7 +408,7 @@ def main(args):
                                                                threshold=1e-4, min_lr=1e-5)
 
 
-        scheduler.step(math.inf)
+        scheduler_fn.step(math.inf)
 
         best_loss = math.inf
         best_epoch = 0
@@ -427,7 +429,8 @@ def main(args):
                          base_trainloader,
                          epoch, args.epochs, logger, trainlog, args, device)
 
-            scheduler.step(perf['Loss/avg'])
+            scheduler_bn.step(perf['Loss/avg'])
+            scheduler_fn.step(perf['Loss/avg'])
 
             # Always checkpoint after first epoch of training
             if (epoch == starting_epoch) or ((epoch + 1) % args.save_freq == 0):
