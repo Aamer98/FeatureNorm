@@ -504,6 +504,7 @@ def train(model_bn, model_fn, clf_bn, clf_fn,
           optimizer_bn, optimizer_fn, base_trainloader, epoch,
           num_epochs, logger, trainlog, args, device, turn_off_sync=False):
 
+    print("11")
     meters = utils.AverageMeterSet()
     model_bn.to(device)
     model_fn.to(device)
@@ -516,10 +517,11 @@ def train(model_bn, model_fn, clf_bn, clf_fn,
     loss_ce = nn.CrossEntropyLoss()
 
     end = time.time()
+    print("12")
     for i, (X_base, y_base) in enumerate(base_trainloader):
 
         meters.update('Data_time', time.time() - end)
-
+        print("13")
         current_lr = optimizer_bn.param_groups[0]['lr']
         meters.update('lr', current_lr, 1)
 
@@ -536,15 +538,18 @@ def train(model_bn, model_fn, clf_bn, clf_fn,
         logits_base_fn = clf_fn(features_base_fn)
 
         loss_base_bn = loss_ce(logits_base_bn, y_base)
+        print("14")
         loss_ce_diff = loss_ce(logits_base_bn, logits_base_fn)
         loss_base_fn = loss_ce(logits_base_fn, y_base)
 
         loss_bn = loss_base_bn + loss_ce_diff
         loss_fn = loss_base_fn
 
+        print("15")
         loss_bn.backward()
         optimizer_bn.step()
 
+        print("16")
         loss_fn.backward()
         optimizer_fn.step()
 
@@ -568,7 +573,7 @@ def train(model_bn, model_fn, clf_bn, clf_fn,
 
         meters.update('Batch_time', time.time() - end)
         end = time.time()
-
+        print("17")
         if (i + 1) % args.print_freq == 0:
             values = meters.values()
             averages = meters.averages()
