@@ -345,6 +345,7 @@ def main(args):
 
             # compute the validation loss for picking learning rates
             # choose fn or bn
+            print("4")
             perf_val = validate(backbone_bn, clf_bn,
                                 base_valloader,
                                 1, 1, logger, vallog, args, device, postfix='Validation',
@@ -356,7 +357,7 @@ def main(args):
             #                    1, 1, logger, vallog, args, device, postfix='Validation',
             #                    turn_off_sync=True)
             vals.append(perf_val['Loss_test/avg'])
-        print("4")
+        print("5")
         # pick the best learning rates
         current_lr = lr_candidates[int(np.argmin(vals))]
 
