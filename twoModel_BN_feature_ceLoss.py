@@ -528,30 +528,37 @@ def train(model_bn, model_fn, clf_bn, clf_fn,
         X_base = X_base.to(device)
         y_base = y_base.to(device)
 
-        optimizer_bn.zero_grad()
         optimizer_fn.zero_grad()
-
-        features_base_bn = model_bn(X_base)
-        logits_base_bn = clf_bn(features_base_bn)
 
         features_base_fn = model_fn(X_base)
         logits_base_fn = clf_fn(features_base_fn)
 
-        loss_base_bn = loss_ce(logits_base_bn, y_base)
-        print("14")
-        loss_ce_diff = loss_ce(logits_base_bn, logits_base_fn)
         loss_base_fn = loss_ce(logits_base_fn, y_base)
 
-        loss_bn = loss_base_bn + loss_ce_diff
         loss_fn = loss_base_fn
+
+        loss_fn.backward()
+        optimizer_fn.step()
+
+
+        print("14")
+        optimizer_bn.zero_grad()
+        
+        features_base_bn = model_bn(X_base)
+        logits_base_bn = clf_bn(features_base_bn)    
+
+        loss_base_bn = loss_ce(logits_base_bn, y_base)
+        
+        loss_ce_diff = loss_ce(logits_base_bn, logits_base_fn)
+        loss_bn = loss_base_bn + loss_ce_diff
+        
 
         print("15")
         loss_bn.backward()
         optimizer_bn.step()
 
         print("16")
-        loss_fn.backward()
-        optimizer_fn.step()
+        
 
         meters.update('Loss_BN', loss_bn.item(), 1)
         meters.update('CE_Loss_source_BN', loss_base_bn.item(), 1)
