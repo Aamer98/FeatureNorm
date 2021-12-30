@@ -552,10 +552,9 @@ def train(model_bn, model_fn, clf_bn, clf_fn,
         logits_base_bn = clf_bn(features_base_bn)    
 
         loss_base_bn = loss_ce(logits_base_bn, y_base)
-        
-        loss_ce_diff = loss_ce(logits_base_bn, logits_base_fn)
-        loss_bn = loss_base_bn + loss_ce_diff
-        
+        loss_diff = loss_ce(logits_base_bn, logits_base_fn.detach())
+        loss_bn = loss_base_bn
+
 
         print("15")
         loss_bn.backward()
