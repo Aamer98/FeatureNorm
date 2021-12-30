@@ -429,8 +429,8 @@ def main(args):
                          base_trainloader,
                          epoch, args.epochs, logger, trainlog, args, device)
 
-            scheduler_bn.step(perf['Loss/avg'])
-            scheduler_fn.step(perf['Loss/avg'])
+            scheduler_bn.step(perf['Loss_BN/avg'])
+            scheduler_fn.step(perf['Loss_FN/avg'])
 
             # Always checkpoint after first epoch of training
             if (epoch == starting_epoch) or ((epoch + 1) % args.save_freq == 0):
