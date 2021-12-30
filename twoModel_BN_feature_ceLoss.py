@@ -519,7 +519,7 @@ def train(model_bn, model_fn, clf_bn, clf_fn,
 
         meters.update('Data_time', time.time() - end)
 
-        current_lr = optimizer.param_groups[0]['lr']
+        current_lr = optimizer_bn.param_groups[0]['lr']
         meters.update('lr', current_lr, 1)
 
         X_base = X_base.to(device)

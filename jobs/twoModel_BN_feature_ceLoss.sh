@@ -8,10 +8,10 @@
 #SBATCH --job-name=twoModel_BN_feature_ceLoss
 #SBATCH --output=%x-%j.out
 #SBATCH --nodes=1
-#SBATCH --gres=gpu:4
+#SBATCH --gres=gpu:1
 #SBATCH --ntasks-per-node=32
 #SBATCH --mem=127000M
-#SBATCH --time=2-00:00
+#SBATCH --time=0-04:00
 #SBATCH --account=rrg-ebrahimi
 
 nvidia-smi
