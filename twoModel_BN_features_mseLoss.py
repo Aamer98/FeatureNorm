@@ -252,7 +252,7 @@ def main(args):
                     'Validate the best model checkpointed at epoch: {}'.format(best_epoch))
 
                 # Validate to set the right loss
-                performance_val = validate(backbone_fn, clf_fn,
+                performance_val = validate(backbone, clf,
                                            base_valloader,
                                            best_epoch, args.epochs, logger, vallog, args, device, postfix='Validation')
 
@@ -346,7 +346,7 @@ def main(args):
             # compute the validation loss for picking learning rates
             # choose fn or bn
             print("4")
-            perf_val = validate(backbone_fn, clf_fn,
+            perf_val = validate(backbone_bn, clf_bn,
                                 base_valloader,
                                 1, 1, logger, vallog, args, device, postfix='Validation',
                                 turn_off_sync=True)
@@ -442,7 +442,7 @@ def main(args):
             if (epoch == starting_epoch) or ((epoch + 1) % args.eval_freq == 0):
                 
                 #choose fn or bn
-                performance_val = validate(backbone_fn, clf_fn,
+                performance_val = validate(backbone_bn, clf_bn,
                                            base_valloader,
                                            epoch+1, args.epochs, logger, vallog, args, device, postfix='Validation')
 
@@ -532,7 +532,19 @@ def train(model_bn, model_fn, clf_bn, clf_fn,
         X_base = X_base.to(device)
         y_base = y_base.to(device)
 
-        
+        optimizer_fn.zero_grad()
+
+        features_base_fn = model_fn(X_base)
+        logits_base_fn = clf_fn(features_base_fn)
+
+        loss_base_fn = loss_ce(logits_base_fn, y_base)
+
+        loss_fn = loss_base_fn
+
+        loss_fn.backward()
+        optimizer_fn.step()
+
+
         print("14")
         optimizer_bn.zero_grad()
         
@@ -540,7 +552,8 @@ def train(model_bn, model_fn, clf_bn, clf_fn,
         logits_base_bn = clf_bn(features_base_bn)    
 
         loss_base_bn = loss_ce(logits_base_bn, y_base)
-        loss_bn = loss_base_bn 
+        loss_diff = loss_ce(features_base_bn, features_base_fn.detach())
+        loss_bn = loss_base_bn + loss_diff
 
 
         print("15")
@@ -548,19 +561,6 @@ def train(model_bn, model_fn, clf_bn, clf_fn,
         optimizer_bn.step()
 
         print("16")
-
-        optimizer_fn.zero_grad()
-
-        features_base_fn = model_fn(X_base)
-        logits_base_fn = clf_fn(features_base_fn)
-
-        loss_base_fn = loss_ce(logits_base_fn, y_base)
-        loss_diff = mse_criterion(logits_base_fn, logits_base_bn.detach())
-        loss_fn = loss_base_fn + loss_diff
-
-        loss_fn.backward()
-        optimizer_fn.step()
-
         
 
         meters.update('Loss_BN', loss_bn.item(), 1)
