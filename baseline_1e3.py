@@ -180,7 +180,7 @@ def main(args):
                                                            patience=10, verbose=False,
                                                            cooldown=10,
                                                            threshold_mode='rel',
-                                                           threshold=1e-4, min_lr=1e-5)
+                                                           threshold=1e-6, min_lr=1e-7)
 
     #######################################
     starting_epoch = 0
@@ -250,7 +250,7 @@ def main(args):
     ###########################################
     if starting_epoch == 0:
         # Start by doing a learning rate test
-        lr_candidates = [1e-1]
+        lr_candidates = [1e-3]
 
         step = 50
 
@@ -318,7 +318,7 @@ def main(args):
                                                                patience=10, verbose=False,
                                                                cooldown=10,
                                                                threshold_mode='rel',
-                                                               threshold=1e-4, min_lr=1e-5)
+                                                               threshold=1e-6, min_lr=1e-7)
 
         scheduler.step(math.inf)
 
@@ -591,7 +591,7 @@ if __name__ == '__main__':
                         help='Path to the checkpoint to be loaded')
     parser.add_argument('--seed', type=int, default=1,
                         help='Seed for randomness')
-    parser.add_argument('--wd', type=float, default=1e-4,
+    parser.add_argument('--wd', type=float, default=1e-6,
                         help='Weight decay for the model')
     parser.add_argument('--resume_latest', action='store_true',
                         help='resume from the latest model in args.dir')

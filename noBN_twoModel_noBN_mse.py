@@ -66,9 +66,6 @@ def main(args):
     if args.model == 'resnet10':
         backbone = models.ResNet10()
         feature_dim = backbone.final_feat_dim
-    elif args.model == 'resnet10_noBN':
-        backbone = models.ResNet10_noBN()
-        feature_dim = backbone.final_feat_dim
     elif args.model == 'resnet12':
         backbone = models.Resnet12(width=1, dropout=0.1)
         feature_dim = backbone.output_size
@@ -79,10 +76,15 @@ def main(args):
     else:
         raise ValueError('Invalid backbone model')
 
+    backbone_noBN = models.ResNet10_noBN
+    feature_dim_noBN = backbone_noBN.final_feat_dim
+
     backbone_sd_init = copy.deepcopy(backbone.state_dict())
+    backbone_sd_init_noBN = copy.deepcopy(backbone_noBN.state_dict())
 
     # the student classifier head
     clf = nn.Linear(feature_dim, 1000).to(device)
+    clf_noBN = nn.Linear(feature_dim_noBN, 1000).to(device)
     ############################
 
     ###########################
@@ -140,6 +142,7 @@ def main(args):
     # initialize the student's backbone with random weights
     if args.backbone_random_init:
         backbone.module.load_state_dict(backbone_sd_init)
+        backbone_noBN.module.load_state_dict(backbone_sd_init_noBN)
 
     # Generate trainset and valset for base dataset
     base_ind = torch.randperm(len(base_dataset))
@@ -182,75 +185,36 @@ def main(args):
                                                            threshold_mode='rel',
                                                            threshold=1e-4, min_lr=1e-5)
 
+
+    optimizer_noBN = torch.optim.SGD([
+        {'params': filter(lambda p: p.requires_grad, backbone_noBN.parameters())},
+        {'params': clf_noBN.parameters()}
+    ],
+        lr=0.1, momentum=0.9,
+        weight_decay=args.wd,
+        nesterov=False)
+
+    scheduler_noBN = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer_noBN,
+                                                           mode='min', factor=0.5,
+                                                           patience=10, verbose=False,
+                                                           cooldown=10,
+                                                           threshold_mode='rel',
+                                                           threshold=1e-4, min_lr=1e-5)
+
+
     #######################################
     starting_epoch = 0
 
-    # whether to resume from the latest checkpoint
-    if args.resume_latest:
-        import re
-        pattern = "checkpoint_(\d+).pkl"
-        candidate = []
-        for i in os.listdir(args.dir):
-            match = re.search(pattern, i)
-            if match:
-                candidate.append(int(match.group(1)))
-
-        # if nothing found, then start from scratch
-        if len(candidate) == 0:
-            print('No latest candidate found to resume!')
-            logger.info('No latest candidate found to resume!')
-        else:
-            latest = np.amax(candidate)
-            load_path = os.path.join(args.dir, f'checkpoint_{latest}.pkl')
-            if latest >= args.epochs:
-                print('The latest checkpoint found ({}) is after the number of epochs (={}) specified! Exiting!'.format(
-                    load_path, args.epochs))
-                logger.info('The latest checkpoint found ({}) is after the number of epochs (={}) specified! Exiting!'.format(
-                    load_path, args.epochs))
-                import sys
-                sys.exit(0)
-            else:
-                best_model_path = os.path.join(args.dir, 'checkpoint_best.pkl')
-
-                # first load the previous best model
-                best_epoch = load_checkpoint(backbone, clf,
-                                             optimizer, scheduler, best_model_path, device)
-
-                logger.info('Latest model epoch: {}'.format(latest))
-
-                logger.info(
-                    'Validate the best model checkpointed at epoch: {}'.format(best_epoch))
-
-                # Validate to set the right loss
-                performance_val = validate(backbone, clf,
-                                           base_valloader,
-                                           best_epoch, args.epochs, logger, vallog, args, device, postfix='Validation')
-
-                loss_val = performance_val['Loss_test/avg']
-                error_val = 100 - performance_val['top1_test_per_class/avg']
-
-                best_error = error_val
-                best_loss = loss_val
-
-                sd_best = torch.load(os.path.join(
-                    args.dir, 'checkpoint_best.pkl'))
-
-                if latest > best_epoch:
-
-                    starting_epoch = load_checkpoint(
-                        backbone, clf, optimizer, scheduler, load_path, device)
-                else:
-                    starting_epoch = best_epoch
-
-                logger.info(
-                    'Continue Training at epoch: {}'.format(starting_epoch))
-
+ 
     ###########################################
     ####### Learning rate test ################
     ###########################################
+
+    
     if starting_epoch == 0:
         # Start by doing a learning rate test
         lr_candidates = [1e-1]
+        lr_candidates_noBN = [1e-1]
 
         step = 50
 
@@ -261,49 +225,36 @@ def main(args):
         # Need to keep reloading when testing different learning rates
         sd_current = copy.deepcopy(backbone.state_dict())
         sd_head = copy.deepcopy(clf.state_dict())
+        
+        sd_current_noBN = copy.deepcopy(backbone_noBN.state_dict())
+        sd_head_noBN = copy.deepcopy(clf_noBN.state_dict())
 
-        vals = []
+        
 
         # Test the learning rate by training for one epoch
-        for current_lr in lr_candidates:
-            lr_log = utils.savelog(args.dir, f'lr_{current_lr}')
+        vals = lr_test(backbone, clf, sd_current, sd_head, lr_candidates, logger,  
+                        args, device, base_trainloader, base_valloader)
+        
+        vals_noBN = lr_test(backbone_noBN, clf_noBN, sd_current_noBN, sd_head_noBN, lr_candidates_noBN, logger,  
+                        args, device, base_trainloader, base_valloader)
 
-            # reload the student model
-            backbone.load_state_dict(sd_current)
-            clf.load_state_dict(sd_head)
+        
 
-            # create the optimizer
-            optimizer = torch.optim.SGD([
-                {'params': filter(lambda p: p.requires_grad, backbone.parameters())},
-                {'params': clf.parameters()}
-            ],            
-                lr=current_lr, momentum=0.9,
-                weight_decay=args.wd,
-                nesterov=False)
 
-            logger.info(f'*** Testing Learning Rate: {current_lr}')
-
-            # training for a bit
-            for i in range(warm_up_epoch):
-                perf = train(backbone, clf, optimizer,
-                             base_trainloader,
-                             i, warm_up_epoch, logger, lr_log, args, device, turn_off_sync=True)
-
-            # compute the validation loss for picking learning rates
-            perf_val = validate(backbone, clf,
-                                base_valloader,
-                                1, 1, logger, vallog, args, device, postfix='Validation',
-                                turn_off_sync=True)
-            vals.append(perf_val['Loss_test/avg'])
 
         # pick the best learning rates
         current_lr = lr_candidates[int(np.argmin(vals))]
+        current_lr_noBN = lr_candidates_noBN[int(np.argmin(vals_noBN))]
 
         # reload the models
         backbone.load_state_dict(sd_current)
         clf.load_state_dict(sd_head)
 
-        logger.info(f"** Learning with lr: {current_lr}")
+        backbone_noBN.load_state_dict(sd_current_noBN)
+        clf_noBN.load_state_dict(sd_head_noBN)
+
+        logger.info(f"** BN Learning with lr: {current_lr}")
+        logger.info(f"** noBN Learning with lr: {current_lr_noBN}")
         
         optimizer = torch.optim.SGD([
             {'params': filter(lambda p: p.requires_grad, backbone.parameters())},
@@ -320,38 +271,55 @@ def main(args):
                                                                threshold_mode='rel',
                                                                threshold=1e-4, min_lr=1e-5)
 
-        scheduler.step(math.inf)
+        optimizer_noBN = torch.optim.SGD([
+            {'params': filter(lambda p: p.requires_grad, backbone_noBN.parameters())},
+            {'params': clf_noBN.parameters()}
+        ],
+            lr=current_lr_noBN, momentum=0.9,
+            weight_decay=args.wd,
+            nesterov=False)
 
+        scheduler_noBN = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer_noBN,
+                                                               mode='min', factor=0.5,
+                                                               patience=10, verbose=False,
+                                                               cooldown=10,
+                                                               threshold_mode='rel',
+                                                               threshold=1e-4, min_lr=1e-5)
+
+        scheduler.step(math.inf)
+        scheduler_noBN.step(math.inf)
+        
         best_loss = math.inf
         best_epoch = 0
-        checkpoint(backbone, clf,
-                   optimizer, scheduler, os.path.join(
+        checkpoint(backbone_noBN, clf_noBN,
+                   optimizer_noBN, scheduler_noBN, os.path.join(
                        args.dir, f'checkpoint_best.pkl'), 0)
 
     ############################
     # save the initialization
-    checkpoint(backbone, clf,
-               optimizer, scheduler,
+    checkpoint(backbone_noBN, clf_noBN,
+               optimizer_noBN, scheduler_noBN,
                os.path.join(
                    args.dir, f'checkpoint_{starting_epoch}.pkl'), starting_epoch)
 
     try:
         for epoch in tqdm(range(starting_epoch, args.epochs)):
-            perf = train(backbone, clf, optimizer,
+            perf = train(backbone, backbone_noBN, clf, clf_noBN, optimizer, optimizer_noBN,
                          base_trainloader,
                          epoch, args.epochs, logger, trainlog, args, device)
 
             scheduler.step(perf['Loss/avg'])
+            scheduler_noBN.step(perf['Loss_noBN/avg'])
 
             # Always checkpoint after first epoch of training
             if (epoch == starting_epoch) or ((epoch + 1) % args.save_freq == 0):
-                checkpoint(backbone, clf,
-                           optimizer, scheduler,
+                checkpoint(backbone_noBN, clf_noBN,
+                           optimizer_noBN, scheduler_noBN,
                            os.path.join(
                                args.dir, f'checkpoint_{epoch + 1}.pkl'), epoch + 1)
 
             if (epoch == starting_epoch) or ((epoch + 1) % args.eval_freq == 0):
-                performance_val = validate(backbone, clf,
+                performance_val = validate(backbone_noBN, clf_noBN,
                                            base_valloader,
                                            epoch+1, args.epochs, logger, vallog, args, device, postfix='Validation')
 
@@ -359,16 +327,16 @@ def main(args):
 
                 if best_loss > loss_val:
                     best_epoch = epoch + 1
-                    checkpoint(backbone, clf,
-                               optimizer, scheduler, os.path.join(
+                    checkpoint(backbone_noBN, clf_noBN,
+                               optimizer_noBN, scheduler_noBN, os.path.join(
                                    args.dir, f'checkpoint_best.pkl'), best_epoch)
                     logger.info(
                         f"*** Best model checkpointed at Epoch {best_epoch}")
                     best_loss = loss_val
 
         if (epoch + 1) % args.save_freq != 0:
-            checkpoint(backbone, clf,
-                       optimizer, scheduler, os.path.join(
+            checkpoint(backbone_noBN, clf_noBN,
+                       optimizer_noBN, scheduler_noBN, os.path.join(
                            args.dir, f'checkpoint_{epoch + 1}.pkl'), epoch + 1)
     finally:
         trainlog.save()
@@ -407,14 +375,17 @@ def load_checkpoint(model, clf, optimizer, scheduler, load_path, device):
     return sd['epoch']
 
 
-def train(model, clf,
-          optimizer, base_trainloader, epoch,
+def train(model, model_noBN, clf, clf_noBN,
+          optimizer, optimizer_noBN, base_trainloader, epoch,
           num_epochs, logger, trainlog, args, device, turn_off_sync=False):
 
     meters = utils.AverageMeterSet()
     model.to(device)
     model.train()
     clf.train()
+    model_noBN.to(device)
+    model_noBN.train()
+    clf_noBN.train()
 
     mse_criterion = nn.MSELoss()
     loss_ce = nn.CrossEntropyLoss()
@@ -425,7 +396,8 @@ def train(model, clf,
         meters.update('Data_time', time.time() - end)
 
         current_lr = optimizer.param_groups[0]['lr']
-        meters.update('lr', current_lr, 1)
+        current_lr_noBN = optimizer_noBN.param_groups[0]['lr']
+        meters.update('lr', current_lr_noBN, 1)
 
         X_base = X_base.to(device)
         y_base = y_base.to(device)
@@ -437,19 +409,39 @@ def train(model, clf,
 
         loss_base = loss_ce(logits_base, y_base)
 
-        loss = loss_base
+        loss = mse_criterion()
 
         loss.backward()
         optimizer.step()
 
+
+        optimizer_noBN.zero_grad()
+
+        features_base_noBN = model_noBN(X_base)
+        logits_base_noBN = clf_noBN(features_base)
+
+        loss_base_noBN = loss_ce(logits_base_noBN, y_base)
+        loss_diff = mse_criterion(logits_base_noBN, logits_base.detach)
+        loss_noBN = loss_base + loss_diff
+
+        loss_noBN.backward()
+        optimizer_noBN.step()
+
         meters.update('Loss', loss.item(), 1)
+        meters.update('Loss_noBN', loss_noBN.item(), 1)        
         meters.update('CE_Loss_source', loss_base.item(), 1)
+        meters.update('CE_Loss_source_noBN', loss_base_noBN.item(), 1)
 
         perf_base = utils.accuracy(logits_base.data,
+                                   y_base.data, topk=(1, ))
+        perf_base_noBN = utils.accuracy(logits_base_noBN.data,
                                    y_base.data, topk=(1, ))
         meters.update('top1_base', perf_base['average'][0].item(), len(X_base))
         meters.update('top1_base_per_class',
                       perf_base['per_class_average'][0].item(), 1)
+        meters.update('top1_base_noBN', perf_base_noBN['average'][0].item(), len(X_base))
+        meters.update('top1_base_per_class_noBN',
+                      perf_base_noBN['per_class_average'][0].item(), 1)
 
         meters.update('Batch_time', time.time() - end)
         end = time.time()
@@ -461,11 +453,15 @@ def train(model, clf,
 
             logger_string = ('Training Epoch: [{epoch}/{epochs}] Step: [{step} / {steps}] '
                              'Batch Time: {meters[Batch_time]:.4f} '
-                             'Data Time: {meters[Data_time]:.4f} Average Loss: {meters[Loss]:.4f} '
+                             'Data Time: {meters[Data_time]:.4f} '
+                             'Average Loss: {meters[Loss]:.4f} Average Loss noBN: {meters[Loss_noBN]:.4f}'
                              'Average CE Loss (Source): {meters[CE_Loss_source]: .4f} '
+                             'Average CE Loss noBN (Source): {meters[CE_Loss_source_noBN]: .4f} '
                              'Learning Rate: {meters[lr]:.4f} '
                              'Top1_base: {meters[top1_base]:.4f} '
                              'Top1_base_per_class: {meters[top1_base_per_class]:.4f} '
+                             'Top1_base_noBN: {meters[top1_base_noBN]:.4f} '
+                             'Top1_base_per_class_noBN: {meters[top1_base_per_class_noBN]:.4f} '
                              ).format(
                 epoch=epoch, epochs=num_epochs, step=i+1, steps=len(base_trainloader), meters=meters)
 
@@ -476,11 +472,15 @@ def train(model, clf,
             break
 
     logger_string = ('Training Epoch: [{epoch}/{epochs}] Step: [{step}] Batch Time: {meters[Batch_time]:.4f} '
-                     'Data Time: {meters[Data_time]:.4f} Average Loss: {meters[Loss]:.4f} '
-                     'Average CE Loss (Source): {meters[CE_Loss_source]: .4f} '
+                     'Data Time: {meters[Data_time]:.4f} '
+                     'Average Loss: {meters[Loss]:.4f} Average Loss noBN: {meters[Loss_noBN]:.4f}'
+                                                  'Average CE Loss (Source): {meters[CE_Loss_source]: .4f} '
+                     'Average CE Loss noBN (Source): {meters[CE_Loss_source_noBN]: .4f} '
                      'Learning Rate: {meters[lr]:.4f} '
                      'Top1_base: {meters[top1_base]:.4f} '
                      'Top1_base_per_class: {meters[top1_base_per_class]:.4f} '
+                     'Top1_base_noBN: {meters[top1_base_noBN]:.4f} '
+                     'Top1_base_per_class_noBN: {meters[top1_base_per_class_noBN]:.4f} '
                      ).format(
         epoch=epoch+1, epochs=num_epochs, step=0, meters=meters)
 
@@ -569,6 +569,46 @@ def validate(model, clf,
         postfix = '_' + postfix
 
     return averages
+
+
+            
+
+
+def lr_test(backbone, clf, sd_current, sd_head, lr_candidates, 
+            logger, args, device, base_trainloader, base_valloader):
+
+    vals = []    
+    for current_lr in lr_candidates:
+        lr_log = utils.savelog(args.dir, f'lr_{current_lr}')
+
+        # reload the student model
+        backbone.load_state_dict(sd_current)
+        clf.load_state_dict(sd_head)
+
+        # create the optimizer
+        optimizer = torch.optim.SGD([
+            {'params': filter(lambda p: p.requires_grad, backbone.parameters())},
+            {'params': clf.parameters()}
+        ],            
+            lr=current_lr, momentum=0.9,
+            weight_decay=args.wd,
+            nesterov=False)
+
+        logger.info(f'*** Testing Learning Rate: {current_lr}')
+
+        # training for a bit
+        for i in range(warm_up_epoch):
+            perf = train(backbone, clf, optimizer,
+                        base_trainloader,
+                        i, warm_up_epoch, logger, lr_log, args, device, turn_off_sync=True)
+
+        # compute the validation loss for picking learning rates
+        perf_val = validate(backbone, clf,
+                            base_valloader,
+                            1, 1, logger, vallog, args, device, postfix='Validation',
+                            turn_off_sync=True)
+        vals.append(perf_val['Loss_test/avg'])    
+    return vals       
 
 
 if __name__ == '__main__':
