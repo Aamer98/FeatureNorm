@@ -76,7 +76,7 @@ def main(args):
     else:
         raise ValueError('Invalid backbone model')
 
-    backbone_noBN = models.ResNet10_noBN
+    backbone_noBN = models.ResNet10_noBN()
     feature_dim_noBN = backbone_noBN.final_feat_dim
 
     backbone_sd_init = copy.deepcopy(backbone.state_dict())
