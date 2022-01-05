@@ -407,7 +407,7 @@ def train(model, model_noBN, clf, clf_noBN,
 
         loss_base = loss_ce(logits_base, y_base)
 
-        loss = mse_criterion()
+        loss = loss_base
 
         loss.backward()
         optimizer.step()
