@@ -232,11 +232,9 @@ def main(args):
         
 
         # Test the learning rate by training for one epoch
-        vals = lr_test(backbone, clf, sd_current, sd_head, lr_candidates, logger,  
-                        args, device, base_trainloader, base_valloader, warm_up_epoch)
+        vals = lr_test(backbone, clf, sd_current, sd_head, lr_candidates, logger, args, device, base_trainloader, base_valloader, warm_up_epoch)
         
-        vals_noBN = lr_test(backbone_noBN, clf_noBN, sd_current_noBN, sd_head_noBN, lr_candidates_noBN, logger,  
-                        args, device, base_trainloader, base_valloader, warm_up_epoch)
+        vals_noBN = lr_test(backbone_noBN, clf_noBN, sd_current_noBN, sd_head_noBN, lr_candidates_noBN, logger, args, device, base_trainloader, base_valloader, warm_up_epoch)
 
         
 
@@ -574,8 +572,7 @@ def validate(model, clf,
             
 
 
-def lr_test(backbone, clf, sd_current, sd_head, lr_candidates, 
-            logger, args, device, base_trainloader, base_valloader, warm_up_epoch):
+def lr_test(backbone, clf, sd_current, sd_head, lr_candidates, logger, args, device, base_trainloader, base_valloader, warm_up_epoch):
 
     vals = []    
     for current_lr in lr_candidates:
