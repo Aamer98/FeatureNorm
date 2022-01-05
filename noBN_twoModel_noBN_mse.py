@@ -232,17 +232,17 @@ def main(args):
         
 
         # Test the learning rate by training for one epoch
-        vals = lr_test(backbone, clf, sd_current, sd_head, lr_candidates, logger, args, device, base_trainloader, base_valloader, warm_up_epoch)
+        #vals = lr_test(backbone, clf, sd_current, sd_head, lr_candidates, logger, args, device, base_trainloader, base_valloader, warm_up_epoch)
         
-        vals_noBN = lr_test(backbone_noBN, clf_noBN, sd_current_noBN, sd_head_noBN, lr_candidates_noBN, logger, args, device, base_trainloader, base_valloader, warm_up_epoch)
+        #vals_noBN = lr_test(backbone_noBN, clf_noBN, sd_current_noBN, sd_head_noBN, lr_candidates_noBN, logger, args, device, base_trainloader, base_valloader, warm_up_epoch)
 
         
 
 
 
         # pick the best learning rates
-        current_lr = lr_candidates[int(np.argmin(vals))]
-        current_lr_noBN = lr_candidates_noBN[int(np.argmin(vals_noBN))]
+        current_lr = lr_candidates[0]
+        current_lr_noBN = lr_candidates_noBN[0]
 
         # reload the models
         backbone.load_state_dict(sd_current)
@@ -572,11 +572,14 @@ def validate(model, clf,
             
 
 
-def lr_test(backbone, clf, sd_current, sd_head, lr_candidates, logger, args, device, base_trainloader, base_valloader, warm_up_epoch):
+def lr_test(backbone, backbone_noBN, clf, clf_noBN, sd_current, sd_head, 
+            sd_current_noBN, sd_head_noBN, lr_candidates, lr_candidates_noBN, 
+            logger, args, device, base_trainloader, base_valloader, warm_up_epoch):
 
     vals = []    
     for current_lr in lr_candidates:
-        lr_log = utils.savelog(args.dir, f'lr_{current_lr}')
+        lr_log = utils.savelog(args.dir, f'lr_bn_{current_lr}')
+        lr_log = utils.savelog(args.dir, f'lr_nobn_{current_lr}')
 
         # reload the student model
         backbone.load_state_dict(sd_current)
