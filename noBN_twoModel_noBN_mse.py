@@ -409,7 +409,7 @@ def train(model, model_noBN, clf, clf_noBN,
 
         loss = loss_base
 
-        loss.backward()
+        loss.backward(retain_graph=True)
         optimizer.step()
 
 
@@ -422,7 +422,7 @@ def train(model, model_noBN, clf, clf_noBN,
         loss_diff = mse_criterion(logits_base_noBN, logits_base.detach())
         loss_noBN = loss_base + loss_diff
 
-        loss_noBN.backward()
+        loss_noBN.backward(retain_graph=True)
         optimizer_noBN.step()
 
         meters.update('Loss', loss.item(), 1)
