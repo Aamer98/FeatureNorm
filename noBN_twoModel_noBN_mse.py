@@ -372,7 +372,9 @@ def load_checkpoint(model, clf, optimizer, scheduler, load_path, device):
 
     return sd['epoch']
 
-
+backbone, backbone_noBN, clf, clf_noBN, optimizer, optimizer_noBN,
+                         base_trainloader,
+                         epoch, args.epochs, logger, trainlog, args, device
 def train(model, model_noBN, clf, clf_noBN,
           optimizer, optimizer_noBN, base_trainloader, epoch,
           num_epochs, logger, trainlog, args, device, turn_off_sync=False):
@@ -386,7 +388,9 @@ def train(model, model_noBN, clf, clf_noBN,
     clf_noBN.train()
 
     mse_criterion = nn.MSELoss()
+    mse_noBN = nn.MSELoss()
     loss_ce = nn.CrossEntropyLoss()
+    loss_ce_noBN = nn.CrossEntropyLoss()
 
     end = time.time()
     for i, (X_base, y_base) in enumerate(base_trainloader):
@@ -401,6 +405,7 @@ def train(model, model_noBN, clf, clf_noBN,
         y_base = y_base.to(device)
 
         #optimizer.zero_grad()
+        #model_bn = copy.deepcopy
 
         features_base = model(X_base)
         logits_base = clf(features_base)
@@ -417,11 +422,11 @@ def train(model, model_noBN, clf, clf_noBN,
         #optimizer_noBN.zero_grad()
 
         features_base_noBN = model_noBN(X_base)
-        logits_base_noBN = clf_noBN(features_base)
+        logits_base_noBN = clf_noBN(features_base_noBN)
         
-        
+        #logits_bn = clf(model(X_base))
         loss_base_noBN = loss_ce(logits_base_noBN, y_base)
-        loss_diff = mse_criterion(logits_base_noBN, clf(model(X_base)).detach())
+        loss_diff = mse_criterion(logits_base_noBN, logits_base.detach())
         loss_noBN = loss_base_noBN + loss_diff
 
         loss_noBN.backward()
@@ -429,7 +434,7 @@ def train(model, model_noBN, clf, clf_noBN,
         optimizer_noBN.zero_grad()
 
 
-        ########################################
+        #.deepcopy()#######################################
         '''
         print("14")
         optimizer_bn.zero_grad()
