@@ -372,9 +372,7 @@ def load_checkpoint(model, clf, optimizer, scheduler, load_path, device):
 
     return sd['epoch']
 
-backbone, backbone_noBN, clf, clf_noBN, optimizer, optimizer_noBN,
-                         base_trainloader,
-                         epoch, args.epochs, logger, trainlog, args, device
+
 def train(model, model_noBN, clf, clf_noBN,
           optimizer, optimizer_noBN, base_trainloader, epoch,
           num_epochs, logger, trainlog, args, device, turn_off_sync=False):
