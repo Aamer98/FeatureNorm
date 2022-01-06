@@ -5,7 +5,7 @@
 #SBATCH --mail-type=FAIL
 #SBATCH --mail-type=REQUEUE
 #SBATCH --mail-type=ALL
-#SBATCH --job-name=noBN_twoModel_noBN_mse
+#SBATCH --job-name=noBN_twoModel_noBN1e2_mse
 #SBATCH --output=%x-%j.out
 #SBATCH --nodes=1
 #SBATCH --gres=gpu:1
@@ -64,18 +64,18 @@ cd $SLURM_TMPDIR
 
 cd FeatureNorm
 
-python noBN_twoModel_noBN_mse.py --dir ./logs/noBN_twoModel_noBN_mse --bsize 128 --epochs 1000 --model resnet10
+python noBN_twoModel_noBN1e2_mse.py --dir ./logs/noBN_twoModel_noBN1e2_mse --bsize 128 --epochs 1000 --model resnet10
 
-python finetune.py --save_dir ./logs/noBN_twoModel_noBN_mse --target_dataset EuroSAT --subset_split datasets/split_seed_1/EuroSAT_labeled_80.csv --embedding_load_path ./logs/noBN_twoModel_noBN_mse/checkpoint_best.pkl --model resnet10_noBN --freeze_backbone &
-python finetune.py --save_dir ./logs/noBN_twoModel_noBN_mse --target_dataset CropDisease --subset_split datasets/split_seed_1/CropDisease_labeled_80.csv --embedding_load_path ./logs/noBN_twoModel_noBN_mse/checkpoint_best.pkl --model resnet10_noBN --freeze_backbone &
-python finetune.py --save_dir ./logs/noBN_twoModel_noBN_mse --target_dataset ISIC --subset_split datasets/split_seed_1/ISIC_labeled_80.csv --embedding_load_path ./logs/noBN_twoModel_noBN_mse/checkpoint_best.pkl --model resnet10_noBN --freeze_backbone &
+python finetune.py --save_dir ./logs/noBN_twoModel_noBN1e2_mse --target_dataset EuroSAT --subset_split datasets/split_seed_1/EuroSAT_labeled_80.csv --embedding_load_path ./logs/noBN_twoModel_noBN1e2_mse/checkpoint_best.pkl --model resnet10_noBN --freeze_backbone &
+python finetune.py --save_dir ./logs/noBN_twoModel_noBN1e2_mse --target_dataset CropDisease --subset_split datasets/split_seed_1/CropDisease_labeled_80.csv --embedding_load_path ./logs/noBN_twoModel_noBN1e2_mse/checkpoint_best.pkl --model resnet10_noBN --freeze_backbone &
+python finetune.py --save_dir ./logs/noBN_twoModel_noBN1e2_mse --target_dataset ISIC --subset_split datasets/split_seed_1/ISIC_labeled_80.csv --embedding_load_path ./logs/noBN_twoModel_noBN1e2_mse/checkpoint_best.pkl --model resnet10_noBN --freeze_backbone &
 wait
-python finetune.py --save_dir ./logs/noBN_twoModel_noBN_mse --target_dataset ChestX --subset_split datasets/split_seed_1/ChestX_labeled_80.csv --embedding_load_path ./logs/noBN_twoModel_noBN_mse/checkpoint_best.pkl --model resnet10_noBN --freeze_backbone
+python finetune.py --save_dir ./logs/noBN_twoModel_noBN1e2_mse --target_dataset ChestX --subset_split datasets/split_seed_1/ChestX_labeled_80.csv --embedding_load_path ./logs/noBN_twoModel_noBN1e2_mse/checkpoint_best.pkl --model resnet10_noBN --freeze_backbone
 
 echo "-----------------------------------<End of run the program>---------------------------------"
 date +"%T"
 echo "--------------------------------------<backup the result>-----------------------------------"
 date +"%T"
 cd $SLURM_TMPDIR
-cp -r $SLURM_TMPDIR/FeatureNorm/logs/noBN_twoModel_noBN_mse/ ~/scratch/FeatureNorm/logs/
+cp -r $SLURM_TMPDIR/FeatureNorm/logs/noBN_twoModel_noBN1e2_mse/ ~/scratch/FeatureNorm/logs/
 
