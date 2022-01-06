@@ -8,7 +8,7 @@
 #SBATCH --job-name=noBN_twoModel_BN_mse
 #SBATCH --output=%x-%j.out
 #SBATCH --nodes=1
-#SBATCH --gres=gpu:1
+#SBATCH --gres=gpu:2
 #SBATCH --ntasks-per-node=32
 #SBATCH --mem=127000M
 #SBATCH --time=2-00:00
