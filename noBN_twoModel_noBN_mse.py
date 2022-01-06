@@ -400,7 +400,7 @@ def train(model, model_noBN, clf, clf_noBN,
         X_base = X_base.to(device)
         y_base = y_base.to(device)
 
-        optimizer.zero_grad()
+        #optimizer.zero_grad()
 
         features_base = model(X_base)
         logits_base = clf(features_base)
@@ -411,15 +411,14 @@ def train(model, model_noBN, clf, clf_noBN,
 
         loss.backward()
         optimizer.step()
+        optimizer.zero_grad()
 
 
-        optimizer_noBN.zero_grad()
+        #optimizer_noBN.zero_grad()
 
         features_base_noBN = model_noBN(X_base)
         logits_base_noBN = clf_noBN(features_base)
         
-        logits_base.detach_()
-        logits_base = logits_base.detach()
         
         loss_base_noBN = loss_ce(logits_base_noBN, y_base)
         loss_diff = mse_criterion(logits_base_noBN, clf(model(X_base)).detach())
@@ -427,6 +426,40 @@ def train(model, model_noBN, clf, clf_noBN,
 
         loss_noBN.backward()
         optimizer_noBN.step()
+        optimizer_noBN.zero_grad()
+
+
+        ########################################
+        '''
+        print("14")
+        optimizer_bn.zero_grad()
+        
+        features_base = model(X_base)
+        logits_base = clf(features_base)    
+
+        loss_base = loss_ce(logits_base, y_base)
+        loss_bn = loss_base
+
+
+        print("15")
+        loss_bn.backward()
+        optimizer.step()
+
+        print("16")
+
+        optimizer_noBN.zero_grad()
+
+        features_base_noBN = model_noBN(X_base)
+        logits_base_fn = clf_fn(features_base_fn)
+
+        loss_base_noBN = loss_ce(logits_base_noBN, y_base)
+        loss_diff = mse_criterion(logits_base_noBN, logits_base_bn.detach())
+        loss_noBN = loss_base_noBN + loss_diff
+
+        loss_noBN.backward()
+        optimizer_noBN.step()
+        '''
+        ########################################
 
         meters.update('Loss', loss.item(), 1)
         meters.update('Loss_noBN', loss_noBN.item(), 1)        
