@@ -417,9 +417,12 @@ def train(model, model_noBN, clf, clf_noBN,
 
         features_base_noBN = model_noBN(X_base)
         logits_base_noBN = clf_noBN(features_base)
-
+        
+        logits_base.detach_()
+        logits_base = logits_base.detach()
+        
         loss_base_noBN = loss_ce(logits_base_noBN, y_base)
-        loss_diff = mse_criterion(logits_base_noBN, logits_base.detach())
+        loss_diff = mse_criterion(logits_base_noBN, logits_base)
         loss_noBN = loss_base_noBN + loss_diff
 
         loss_noBN.backward()
