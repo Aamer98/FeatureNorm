@@ -5,7 +5,7 @@
 #SBATCH --mail-type=FAIL
 #SBATCH --mail-type=REQUEUE
 #SBATCH --mail-type=ALL
-#SBATCH --job-name=baseline_gn32_seed0
+#SBATCH --job-name=baseline_gn32_seed1
 #SBATCH --output=%x-%j.out
 #SBATCH --nodes=1
 #SBATCH --gres=gpu:1
@@ -64,18 +64,18 @@ cd $SLURM_TMPDIR
 
 cd FeatureNorm
 
-python baseline_mod.py --dir ./logs/baseline_gn32_seed0 --bsize 128 --epochs 1000 --model resnet10_GN
+python baseline_mod.py --dir ./logs/baseline_gn32_seed1 --bsize 128 --epochs 1000 --model resnet10_GN
 
-python finetune.py --save_dir ./logs/baseline_gn32_seed0 --target_dataset EuroSAT --subset_split datasets/split_seed_1/EuroSAT_labeled_80.csv --embedding_load_path ./logs/baseline_gn32_seed0/checkpoint_best.pkl --model resnet10_GN --freeze_backbone &
-python finetune.py --save_dir ./logs/baseline_gn32_seed0 --target_dataset CropDisease --subset_split datasets/split_seed_1/CropDisease_labeled_80.csv --embedding_load_path ./logs/baseline_gn32_seed0/checkpoint_best.pkl --model resnet10_GN --freeze_backbone &
-python finetune.py --save_dir ./logs/baseline_gn32_seed0 --target_dataset ISIC --subset_split datasets/split_seed_1/ISIC_labeled_80.csv --embedding_load_path ./logs/baseline_gn32_seed0/checkpoint_best.pkl --model resnet10_GN --freeze_backbone &
+python finetune.py --save_dir ./logs/baseline_gn32_seed1 --target_dataset EuroSAT --subset_split datasets/split_seed_1/EuroSAT_labeled_80.csv --embedding_load_path ./logs/baseline_gn32_seed1/checkpoint_best.pkl --model resnet10_GN --freeze_backbone &
+python finetune.py --save_dir ./logs/baseline_gn32_seed1 --target_dataset CropDisease --subset_split datasets/split_seed_1/CropDisease_labeled_80.csv --embedding_load_path ./logs/baseline_gn32_seed1/checkpoint_best.pkl --model resnet10_GN --freeze_backbone &
+python finetune.py --save_dir ./logs/baseline_gn32_seed1 --target_dataset ISIC --subset_split datasets/split_seed_1/ISIC_labeled_80.csv --embedding_load_path ./logs/baseline_gn32_seed1/checkpoint_best.pkl --model resnet10_GN --freeze_backbone &
 wait
-python finetune.py --save_dir ./logs/baseline_gn32_seed0 --target_dataset ChestX --subset_split datasets/split_seed_1/ChestX_labeled_80.csv --embedding_load_path ./logs/baseline_gn32_seed0/checkpoint_best.pkl --model resnet10_GN --freeze_backbone
+python finetune.py --save_dir ./logs/baseline_gn32_seed1 --target_dataset ChestX --subset_split datasets/split_seed_1/ChestX_labeled_80.csv --embedding_load_path ./logs/baseline_gn32_seed1/checkpoint_best.pkl --model resnet10_GN --freeze_backbone
 
 echo "-----------------------------------<End of run the program>---------------------------------"
 date +"%T"
 echo "--------------------------------------<backup the result>-----------------------------------"
 date +"%T"
 cd $SLURM_TMPDIR
-cp -r $SLURM_TMPDIR/FeatureNorm/logs/baseline_gn32_seed0/ ~/scratch/FeatureNorm/logs/
+cp -r $SLURM_TMPDIR/FeatureNorm/logs/baseline_gn32_seed1/ ~/scratch/FeatureNorm/logs/
 
