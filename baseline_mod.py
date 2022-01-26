@@ -76,6 +76,9 @@ def main(args):
         backbone = models.resnet18(remove_last_relu=False,
                                    input_high_res=True)
         feature_dim = 512
+    elif args.model == 'resnet10_GN':
+        backbone = models.ResNet10_GN()
+        feature_dim = backbone.final_feat_dim
     else:
         raise ValueError('Invalid backbone model')
 
