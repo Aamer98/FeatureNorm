@@ -79,6 +79,9 @@ def main(args):
     elif args.model == 'resnet10_GN':
         backbone = models.ResNet10_GN()
         feature_dim = backbone.final_feat_dim
+    elif args.model == 'resnet10_GN_na':
+        backbone = models.ResNet10_GN_na()
+        feature_dim = backbone.final_feat_dim
     else:
         raise ValueError('Invalid backbone model')
 
