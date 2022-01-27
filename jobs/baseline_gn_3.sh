@@ -64,7 +64,7 @@ cd $SLURM_TMPDIR
 
 cd FeatureNorm
 
-python baseline_mod.py --dir ./logs/baseline_gn32_seed3 --bsize 128 --epochs 1000 --model resnet10_GN --seed 2 
+python baseline_mod.py --dir ./logs/baseline_gn32_seed3 --bsize 128 --epochs 1000 --model resnet10_GN --seed 3 
 
 python finetune.py --save_dir ./logs/baseline_gn32_seed3 --target_dataset EuroSAT --subset_split datasets/split_seed_1/EuroSAT_labeled_80.csv --embedding_load_path ./logs/baseline_gn32_seed3/checkpoint_best.pkl --seed 3 --model resnet10_GN --freeze_backbone &
 python finetune.py --save_dir ./logs/baseline_gn32_seed3 --target_dataset CropDisease --subset_split datasets/split_seed_1/CropDisease_labeled_80.csv --embedding_load_path ./logs/baseline_gn32_seed3/checkpoint_best.pkl --seed 3 --model resnet10_GN --freeze_backbone &
