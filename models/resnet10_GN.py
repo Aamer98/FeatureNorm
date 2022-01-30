@@ -6,7 +6,7 @@ import numpy as np
 import torch.nn.functional as F
 from torch.nn.utils.weight_norm import WeightNorm
 
-num_group = 32 # groups of channels inside the GroupNorm
+num_group = 4 # groups of channels inside the GroupNorm
 
 def init_layer(L):
     # Initialization using fan-in
