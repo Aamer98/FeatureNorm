@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --mail-user=Moslem.Yazdanpanah@gmail.com
+#SBATCH --mail-user=ar.aamer@gmail.com
 #SBATCH --mail-type=BEGIN
 #SBATCH --mail-type=END
 #SBATCH --mail-type=FAIL
@@ -22,7 +22,7 @@ echo "------------------------------------< Data preparation>-------------------
 echo "Copying the source code"
 date +"%T"
 cd $SLURM_TMPDIR
-cp -r ~/scratch/BMS .
+cp -r ~/scratch/FeatureNorm .
 
 echo "Copying the datasets"
 date +"%T"
@@ -30,7 +30,7 @@ cp -r ~/scratch/CD-FSL_Datasets .
 
 echo "creating data directories"
 date +"%T"
-cd BMS
+cd FeatureNorm
 cd data
 unzip -q $SLURM_TMPDIR/CD-FSL_Datasets/miniImagenet.zip
 
@@ -62,7 +62,7 @@ echo "---------------------------------------<Run the program>------------------
 date +"%T"
 cd $SLURM_TMPDIR
 
-cd BMS
+cd FeatureNorm
 target_testset="CropDisease"
 
 python BMS_in.py --dir ./logs/BMS_in/$target_testset --target_dataset $target_testset --target_subset_split datasets/split_seed_1/$target_testset\_unlabeled_20.csv --bsize 128 --epochs 1000 --model resnet10
@@ -74,4 +74,4 @@ date +"%T"
 echo "--------------------------------------<backup the result>-----------------------------------"
 date +"%T"
 cd $SLURM_TMPDIR
-cp -r $SLURM_TMPDIR/BMS/logs/BMS_in/$target_testset/ ~/scratch/BMS/logs/BMS_in/
+cp -r $SLURM_TMPDIR/FeatureNorm/logs/BMS_in/$target_testset/ ~/scratch/FeatureNorm/logs/BMS_in/

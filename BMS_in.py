@@ -268,6 +268,7 @@ def main(args):
         weight_decay=args.wd,
         nesterov=False)
 
+
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer,
                                                            mode='min', factor=0.5,
                                                            patience=10, verbose=False,
@@ -665,7 +666,7 @@ def validate(model, clf,
             #  shift the affine
             f1 = shift_model(X1)
             f2 = shift_model(X2)
-            shift_bias(shift_model, source_stat, device)
+            shift_model = shift_bias(shift_model, source_stat, device)
 
             shifted_features_base = shift_model(X_base)
             shifted_logits_base = clf(shifted_features_base)
@@ -735,12 +736,13 @@ def shift_bias(model, source_stat, device):
             source_var = source_stat[i]['vars']
             shift_value = (source_mean - target_mean)
             total_shift += torch.sum(shift_value)
+            epsil = layer.eps.clonse()
             # shift bias
             layer.bias = nn.Parameter(layer.bias + ((torch.rand(len(source_mean)).to(
                 device) * shift_value.to(device)).to(
-                    device) * layer.weight / source_var)).to(device)
+                    device) / torch.sqrt(source_var + epsil).to(device) )).to(device)
             i += 1
-    return total_shift
+    return model
 
 
 def clone_BN_affine(model):

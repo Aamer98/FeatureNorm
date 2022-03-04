@@ -181,6 +181,14 @@ def main(args):
         weight_decay=args.wd,
         nesterov=False)
 
+    optimizer = torch.optim.SGD([
+        {'params': backbone.parameters()},
+        {'params': clf.parameters()}
+    ],
+        lr=0.1, momentum=0.9,
+        weight_decay=args.wd,
+        nesterov=False)
+
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer,
                                                            mode='min', factor=0.5,
                                                            patience=10, verbose=False,
