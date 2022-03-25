@@ -16,7 +16,7 @@
 
 nvidia-smi
 
-source ~/ENV/bin/activate
+source ~/py37/bin/activate
 
 echo "------------------------------------< Data preparation>----------------------------------"
 echo "Copying the source code"

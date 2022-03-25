@@ -547,7 +547,7 @@ def train(model, clf,
         #  shift the affine
         shift_model(X1)
         shift_model(X2)
-        shift_bias(shift_model, source_stat, device)
+        shift_model = shift_bias(shift_model, source_stat, device)
 
         shifted_features_base = shift_model(X_base)
         shifted_logits_base = clf(shifted_features_base)
