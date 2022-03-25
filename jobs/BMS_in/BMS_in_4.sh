@@ -8,15 +8,15 @@
 #SBATCH --job-name=BMS_in_4
 #SBATCH --output=%x-%j.out
 #SBATCH --nodes=1
-#SBATCH --gres=gpu:4
+#SBATCH --gres=gpu:1
 #SBATCH --ntasks-per-node=32
 #SBATCH --mem=127000M
-#SBATCH --time=4-00:00
+#SBATCH --time=1-00:00
 #SBATCH --account=rrg-ebrahimi
 
 nvidia-smi
 
-source ~/ENV/bin/activate
+source ~/py37/bin/activate
 
 echo "------------------------------------< Data preparation>----------------------------------"
 echo "Copying the source code"

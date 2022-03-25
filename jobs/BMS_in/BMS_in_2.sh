@@ -8,10 +8,10 @@
 #SBATCH --job-name=BMS_in_2
 #SBATCH --output=%x-%j.out
 #SBATCH --nodes=1
-#SBATCH --gres=gpu:4
+#SBATCH --gres=gpu:1
 #SBATCH --ntasks-per-node=32
 #SBATCH --mem=127000M
-#SBATCH --time=3-00:00
+#SBATCH --time=2-00:00
 #SBATCH --account=rrg-ebrahimi
 
 nvidia-smi
