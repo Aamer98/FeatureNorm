@@ -11,7 +11,7 @@
 #SBATCH --gres=gpu:1
 #SBATCH --ntasks-per-node=32
 #SBATCH --mem=127000M
-#SBATCH --time=0-12:00
+#SBATCH --time=1-00:00
 #SBATCH --account=rrg-ebrahimi
 
 nvidia-smi
@@ -67,7 +67,9 @@ cd FeatureNorm
 target_testset="EuroSAT"
 
 python BMS_in.py --dir ./logs/BMS_in/$target_testset --target_dataset $target_testset --target_subset_split datasets/split_seed_1/$target_testset\_unlabeled_20.csv --bsize 128 --epochs 1000 --model resnet10
+wait 
 
+python finetune.py --save_dir ./logs/BMS_in/$target_testset --target_dataset EuroSAT --subset_split datasets/split_seed_1/EuroSAT_labeled_80.csv --embedding_load_path ./logs/BMS_in/$target_testset --freeze_backbone &
 wait
 
 echo "-----------------------------------<End of run the program>---------------------------------"
