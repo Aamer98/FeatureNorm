@@ -11,12 +11,12 @@
 #SBATCH --gres=gpu:1
 #SBATCH --ntasks-per-node=32
 #SBATCH --mem=127000M
-#SBATCH --time=1-00:00
+#SBATCH --time=2-00:00
 #SBATCH --account=rrg-ebrahimi
 
 nvidia-smi
 
-source ~/py37/bin/activate
+source ~/my_env9/bin/activate
 
 echo "------------------------------------< Data preparation>----------------------------------"
 echo "Copying the source code"
@@ -65,7 +65,11 @@ cd $SLURM_TMPDIR
 cd FeatureNorm
 target_testset="CropDisease"
 
-python BMS_in.py --dir ./logs/BMS_in/$target_testset --target_dataset $target_testset --target_subset_split datasets/split_seed_1/$target_testset\_unlabeled_20.csv --bsize 128 --epochs 1000 --model resnet10
+python BMS_in.py --dir ./logs/BMS_in/$target_testset --target_dataset $target_testset --target_subset_split datasets/split_seed_1/$target_testset\_unlabeled_20.csv --bsize 128 --epochs 1000 --model resnet18
+
+wait
+
+python finetune.py --save_dir ./logs/BMS_in/$target_testset --target_dataset CropDisease --subset_split datasets/split_seed_1/CropDisease_labeled_80.csv --embedding_load_path ./logs/BMS_in/$target_testset/checkpoint_best.pkl --freeze_backbone &
 
 wait
 
