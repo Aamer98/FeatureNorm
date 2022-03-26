@@ -69,6 +69,10 @@ python BMS_in.py --dir ./logs/BMS_in/$target_testset --target_dataset $target_te
 
 wait
 
+python finetune.py --save_dir ./logs/BMS_in/$target_testset --target_dataset ChestX --subset_split datasets/split_seed_1/ChestX_labeled_80.csv --embedding_load_path ./logs/BMS_in/$target_testset/checkpoint_best.pkl --freeze_backbone
+
+wait
+
 echo "-----------------------------------<End of run the program>---------------------------------"
 date +"%T"
 echo "--------------------------------------<backup the result>-----------------------------------"

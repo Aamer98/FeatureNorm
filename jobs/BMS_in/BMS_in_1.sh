@@ -66,10 +66,10 @@ cd FeatureNorm
 
 target_testset="EuroSAT"
 
-python BMS_in.py --dir ./logs/BMS_in/$target_testset --target_dataset $target_testset --target_subset_split datasets/split_seed_1/$target_testset\_unlabeled_20.csv --bsize 128 --epochs 1000 --model resnet10
+python BMS_in.py --dir ./logs/BMS_in/$target_testset --target_dataset $target_testset --target_subset_split datasets/split_seed_1/$target_testset\_unlabeled_20.csv --bsize 128 --epochs 1000 --model resnet18
 wait 
 
-python finetune.py --save_dir ./logs/BMS_in/$target_testset --target_dataset EuroSAT --subset_split datasets/split_seed_1/EuroSAT_labeled_80.csv --embedding_load_path ./logs/BMS_in/$target_testset --freeze_backbone &
+python finetune.py --save_dir ./logs/BMS_in/$target_testset --target_dataset EuroSAT --subset_split datasets/split_seed_1/EuroSAT_labeled_80.csv --embedding_load_path ./logs/BMS_in/$target_testset/checkpoint_best.pkl --freeze_backbone &
 wait
 
 echo "-----------------------------------<End of run the program>---------------------------------"

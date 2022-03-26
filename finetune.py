@@ -305,7 +305,7 @@ if __name__ == '__main__':
                         help='Number of query examples per class')
     parser.add_argument('--train_aug', action='store_true',
                         help='perform data augmentation or not during training ')
-    parser.add_argument('--model', default='resnet10',
+    parser.add_argument('--model', default='resnet18',
                         help='backbone architecture')
     parser.add_argument('--freeze_backbone', action='store_true',
                         help='Freeze the backbone network for finetuning')
